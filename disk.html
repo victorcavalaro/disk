@@ -1,0 +1,1027 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sistema de Pedidos - Disk Cidade Alta</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #111827;
+      --panel-2: #1f2937;
+      --text: #f9fafb;
+      --muted: #cbd5e1;
+      --line: rgba(255, 255, 255, 0.12);
+      --yellow: #facc15;
+      --yellow-2: #eab308;
+      --green: #22c55e;
+      --red: #ef4444;
+      --blue: #38bdf8;
+      --input: #020617;
+      --shadow: 0 16px 45px rgba(0, 0, 0, 0.35);
+      --radius: 18px;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html {
+      -webkit-text-size-adjust: 100%;
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: linear-gradient(135deg, #020617 0%, #111827 55%, #1e293b 100%);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    input,
+    button,
+    textarea {
+      font: inherit;
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: rgba(15, 23, 42, 0.94);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .topbar {
+      max-width: 1500px;
+      margin: 0 auto;
+      padding: 16px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 14px;
+      align-items: center;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.35rem, 2.5vw, 2rem);
+      line-height: 1.15;
+    }
+
+    .subtitle {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .summary {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .pill {
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 9px 13px;
+      font-size: 0.9rem;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .pill strong {
+      color: var(--yellow);
+    }
+
+    main {
+      max-width: 1500px;
+      margin: 0 auto;
+      padding: 18px 16px 48px;
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      align-items: center;
+      background: rgba(17, 24, 39, 0.86);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      border-radius: var(--radius);
+      padding: 14px;
+      margin-bottom: 18px;
+    }
+
+    .search {
+      width: 100%;
+      background: var(--input);
+      border: 1px solid var(--line);
+      color: var(--text);
+      border-radius: 12px;
+      padding: 14px;
+      font-size: 16px;
+      outline: none;
+      min-height: 48px;
+    }
+
+    .search:focus {
+      border-color: var(--yellow);
+      box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.14);
+    }
+
+    button {
+      border: 0;
+      border-radius: 14px;
+      padding: 13px 15px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: transform 0.12s ease, opacity 0.12s ease, background 0.12s ease;
+      color: #111827;
+      background: var(--yellow);
+      min-height: 48px;
+      touch-action: manipulation;
+      user-select: none;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      background: var(--yellow-2);
+    }
+
+    button:active {
+      transform: scale(0.98);
+    }
+
+    button.secondary {
+      background: var(--panel-2);
+      color: var(--text);
+      border: 1px solid var(--line);
+    }
+
+    button.secondary:hover {
+      background: #374151;
+    }
+
+    button.danger {
+      background: #7f1d1d;
+      color: #fff;
+    }
+
+    button.danger:hover {
+      background: #991b1b;
+    }
+
+    .copy-options {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 0.9rem;
+      user-select: none;
+      white-space: nowrap;
+    }
+
+    .copy-options input {
+      width: 20px;
+      height: 20px;
+      accent-color: var(--yellow);
+      flex: 0 0 auto;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 18px;
+      align-items: start;
+    }
+
+    .categories {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .category {
+      background: rgba(17, 24, 39, 0.86);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    .category-header {
+      padding: 16px;
+      background: linear-gradient(90deg, rgba(250, 204, 21, 0.12), rgba(56, 189, 248, 0.07));
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .category-title {
+      margin: 0;
+      font-size: 1.15rem;
+    }
+
+    .category-count {
+      color: var(--muted);
+      font-size: 0.9rem;
+      white-space: nowrap;
+    }
+
+    .items {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1px;
+      background: var(--line);
+    }
+
+    .item {
+      background: rgba(15, 23, 42, 0.96);
+      padding: 12px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .item-name {
+      font-weight: 800;
+      line-height: 1.28;
+      overflow-wrap: anywhere;
+    }
+
+    .max {
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 0.86rem;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: 42px 58px 42px;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .round {
+      width: 42px;
+      height: 42px;
+      padding: 0;
+      border-radius: 999px;
+      color: #fff;
+      font-size: 1.45rem;
+      line-height: 1;
+      display: grid;
+      place-items: center;
+    }
+
+    .minus {
+      background: var(--red);
+    }
+
+    .minus:hover {
+      background: #dc2626;
+    }
+
+    .plus {
+      background: var(--green);
+    }
+
+    .plus:hover {
+      background: #16a34a;
+    }
+
+    .qty {
+      height: 42px;
+      width: 58px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: var(--input);
+      color: var(--text);
+      text-align: center;
+      font-weight: 900;
+      font-size: 16px;
+      outline: none;
+      appearance: textfield;
+    }
+
+    .qty::-webkit-outer-spin-button,
+    .qty::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    .preview-card {
+      position: static;
+      top: auto;
+      background: rgba(17, 24, 39, 0.9);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      border-radius: var(--radius);
+      padding: 14px;
+    }
+
+    .preview-card h2 {
+      margin: 0 0 10px;
+      font-size: 1.1rem;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 480px;
+      resize: vertical;
+      background: var(--input);
+      border: 1px solid var(--line);
+      color: var(--text);
+      border-radius: 12px;
+      padding: 12px;
+      line-height: 1.45;
+      font-family: Consolas, Monaco, monospace;
+      font-size: 16px;
+      outline: none;
+    }
+
+    .status {
+      min-height: 22px;
+      margin-top: 10px;
+      color: var(--blue);
+      font-weight: 800;
+      font-size: 0.92rem;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    @media (max-width: 1100px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .preview-card {
+        position: static;
+      }
+
+      textarea {
+        min-height: 300px;
+      }
+    }
+
+    @media (max-width: 780px) {
+      body {
+        background: #020617;
+      }
+
+      header {
+        position: static;
+      }
+
+      .topbar {
+        grid-template-columns: 1fr;
+        padding: 14px 12px 10px;
+        gap: 10px;
+      }
+
+      h1 {
+        font-size: 1.22rem;
+      }
+
+      .subtitle {
+        font-size: 0.86rem;
+      }
+
+      .summary {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        justify-content: stretch;
+      }
+
+      .pill {
+        text-align: center;
+        padding: 8px 6px;
+        font-size: 0.78rem;
+      }
+
+      main {
+        padding: 10px 10px calc(20px + env(safe-area-inset-bottom));
+      }
+
+      .actions {
+        grid-template-columns: 1fr;
+        gap: 10px;
+        padding: 12px;
+        margin-bottom: 12px;
+        border-radius: 16px;
+        box-shadow: 0 10px 28px rgba(0, 0, 0, 0.3);
+      }
+
+      .search,
+      .copy-options {
+        grid-column: 1 / -1;
+      }
+
+      .copy-options {
+        white-space: normal;
+        line-height: 1.25;
+        align-items: flex-start;
+        background: rgba(2, 6, 23, 0.7);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 10px;
+        font-size: 0.86rem;
+      }
+
+      #copyBtn {
+        grid-column: 1 / -1;
+        min-height: 54px;
+        font-size: 1rem;
+      }
+
+      #downloadBtn,
+      #clearBtn {
+        min-height: 50px;
+        font-size: 0.92rem;
+      }
+
+      .categories {
+        gap: 12px;
+      }
+
+      .category {
+        border-radius: 16px;
+      }
+
+      .category-header {
+        padding: 12px;
+        align-items: flex-start;
+      }
+
+      .category-title {
+        font-size: 1rem;
+        line-height: 1.2;
+      }
+
+      .category-count {
+        font-size: 0.76rem;
+      }
+
+      .items {
+        grid-template-columns: 1fr;
+      }
+
+      .item {
+        grid-template-columns: minmax(0, 1fr) auto;
+        padding: 12px;
+        gap: 10px;
+      }
+
+      .item-name {
+        font-size: 0.96rem;
+      }
+
+      .max {
+        font-size: 0.78rem;
+      }
+
+      .controls {
+        grid-template-columns: 46px 58px 46px;
+        gap: 7px;
+      }
+
+      .round {
+        width: 46px;
+        height: 46px;
+        font-size: 1.55rem;
+      }
+
+      .qty {
+        width: 58px;
+        height: 46px;
+      }
+
+      .preview-card {
+        margin-top: 12px;
+        border-radius: 16px;
+        padding: 12px;
+      }
+
+      .preview-card h2 {
+        font-size: 1rem;
+      }
+
+      textarea {
+        min-height: 220px;
+        max-height: 45vh;
+        font-size: 14px;
+      }
+    }
+
+    @media (max-width: 390px) {
+      .item {
+        grid-template-columns: 1fr;
+      }
+
+      .controls {
+        width: 100%;
+        grid-template-columns: 52px 1fr 52px;
+      }
+
+      .round {
+        width: 52px;
+        height: 52px;
+      }
+
+      .qty {
+        width: 100%;
+        height: 52px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="topbar">
+      <div>
+        <h1>Sistema de Pedidos - Disk Cidade Alta</h1>
+        <div class="subtitle">Use + e − para montar o pedido. A quantidade não passa do estoque máximo cadastrado.</div>
+      </div>
+      <div class="summary">
+        <div class="pill">Itens: <strong id="totalItems">0</strong></div>
+        <div class="pill">Qtd. pedido: <strong id="totalPedido">0</strong></div>
+        <div class="pill">Data: <strong id="todayLabel"></strong></div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="actions">
+      <input id="searchInput" class="search" type="search" placeholder="Buscar item..." />
+      <label class="copy-options">
+        <input id="onlySelected" type="checkbox" checked />
+        Copiar só itens com quantidade maior que zero
+      </label>
+      <button id="copyBtn">Copiar TXT</button>
+      <button id="downloadBtn" class="secondary">Baixar TXT</button>
+      <button id="clearBtn" class="danger">Zerar pedido</button>
+    </section>
+
+    <section class="layout">
+      <div id="categories" class="categories"></div>
+
+      <aside class="preview-card">
+        <h2>Prévia do TXT</h2>
+        <textarea id="txtPreview" readonly></textarea>
+        <div id="status" class="status"></div>
+      </aside>
+    </section>
+  </main>
+
+  <script>
+    const categorias = [
+      {
+        nome: "Long necks",
+        itens: [
+          { nome: "Heineken Long", max: 8 },
+          { nome: "Heineken Long Zero", max: 2 },
+          { nome: "Budweiser Long", max: 2 },
+          { nome: "Budweiser Long Zero", max: 1 },
+          { nome: "Stella Pure Gold Long", max: 3 },
+          { nome: "Stella Long", max: 2 },
+          { nome: "Império Ultra Long", max: 5 },
+          { nome: "Amstel Ultra Long", max: 5 },
+          { nome: "Michelob Long", max: 1 },
+          { nome: "Spaten Long", max: 1 },
+          { nome: "Sol Long", max: 4 },
+          { nome: "Sol Long Zero", max: 1 },
+          { nome: "Corona Long", max: 2 },
+          { nome: "Corona Long Zero", max: 1 },
+          { nome: "Quilmes Long", max: 1 },
+          { nome: "Patagonia Long Weisse", max: 2 },
+          { nome: "Patagonia Long Amber Lager", max: 1 },
+          { nome: "Patagonia Pilsen Long", max: 2 },
+          { nome: "Patagonia Long IPA", max: 2 },
+          { nome: "Eisenbahn Verde Long", max: 1 },
+          { nome: "Eisenbahn Pilsen Long", max: 2 },
+          { nome: "Eisenbahn IPA Long", max: 1 },
+          { nome: "Eisenbahn Session IPA Long", max: 1 },
+          { nome: "Eisenbahn Weisse Long", max: 1 }
+        ]
+      },
+      {
+        nome: "Ice, Beats, Keep Cooler, Cabaré e Askov",
+        itens: [
+          { nome: "Skol Beats Verde Long", max: 1 },
+          { nome: "Skol Beats Azul Senses Long", max: 1 },
+          { nome: "Skol Beats Vermelha Long", max: 1 },
+          { nome: "Skol Beats GT Long", max: 1 },
+          { nome: "Smirnoff Ice Long", max: 1 },
+          { nome: "Keep Cooler Uva", max: 12 },
+          { nome: "Keep Cooler Pêssego", max: 12 },
+          { nome: "Keep Cooler Morango", max: 12 },
+          { nome: "Cabaré Vermelha", max: 12 },
+          { nome: "Cabaré Limão", max: 12 },
+          { nome: "Askov 275 Vinho Branco", max: 12 },
+          { nome: "Askov 275 Vinho Tinto", max: 12 },
+          { nome: "Caixa Askov 275 Vermelha", max: 1 },
+          { nome: "Caixa Askov 275 Azul", max: 1 },
+          { nome: "Caixa Askov 275 Maracujá", max: 1 },
+          { nome: "Caixa Askov 275 Limão", max: 1 },
+          { nome: "Ice Drinks Limão", max: 2 },
+          { nome: "Ice Drinks Azul", max: 1 },
+          { nome: "Ice Drinks Vermelho", max: 1 },
+          { nome: "Ice Drinks Maracujá", max: 1 }
+        ]
+      },
+      {
+        nome: "Cervejas lata 350ml",
+        itens: [
+          { nome: "Sub-Zero 350", max: 7 },
+          { nome: "Lokal 350", max: 10 },
+          { nome: "Glacial 350", max: 4 },
+          { nome: "Itaipava 350", max: 12 },
+          { nome: "Malzbier 350", max: 2 },
+          { nome: "Caracu 350", max: 2 },
+          { nome: "Brahma Zero 350", max: 2 },
+          { nome: "Budweiser 350 Zero", max: 3 },
+          { nome: "Heineken 350 Zero", max: 2 },
+          { nome: "Império 350", max: 10 },
+          { nome: "Brahma Duplo Malte", max: 5 },
+          { nome: "Eisenbahn Pilsen 350", max: 3 },
+          { nome: "Budweiser 350", max: 10 },
+          { nome: "Spaten 350", max: 10 },
+          { nome: "Heineken 350", max: 20 },
+          { nome: "Amstel 350", max: 25 },
+          { nome: "Xeque Mate 350", max: 1 },
+          { nome: "Xá de Cana 350", max: 1 },
+          { nome: "Petra 350", max: 10 },
+          { nome: "Original 350", max: 25 },
+          { nome: "Boa 350", max: 25 },
+          { nome: "Brahma 350 Agudos", max: 25 },
+          { nome: "Skol 350 Agudos", max: 25 }
+        ]
+      },
+      {
+        nome: "Cervejas lata 473ml e outros",
+        itens: [
+          { nome: "Skol 473", max: 4 },
+          { nome: "Brahma 473", max: 4 },
+          { nome: "Amstel 473", max: 7 },
+          { nome: "Heineken 473", max: 4 },
+          { nome: "Sub-Zero 473", max: 3 },
+          { nome: "Itaipava 473", max: 7 },
+          { nome: "Lokal 473", max: 4 },
+          { nome: "Draft", max: 1 },
+          { nome: "Roma", max: 8 }
+        ]
+      },
+      {
+        nome: "Energéticos",
+        itens: [
+          { nome: "Caixa Red Bull 473", max: 1 },
+          { nome: "Monster Mango Loco", max: 2 },
+          { nome: "Monster Mango Loco Zero", max: 2 },
+          { nome: "Monster Watermelon", max: 2 },
+          { nome: "Monster Preto", max: 5 },
+          { nome: "Monster Preto Zero", max: 4 },
+          { nome: "Monster Branco Zero Ultra", max: 2 },
+          { nome: "Monster The Doctor", max: 2 },
+          { nome: "Monster Ultra Strawberry", max: 2 },
+          { nome: "Caixa Red Bull Zero", max: 1 },
+          { nome: "Caixa Red Bull Tradicional", max: 2 },
+          { nome: "Caixa Red Bull Pompelo", max: 1 },
+          { nome: "Caixa Red Bull Melancia", max: 1 },
+          { nome: "Caixa Red Bull Tropical", max: 1 },
+          { nome: "Furioso 250 Tradicional", max: 5 },
+          { nome: "Furioso 250 Tropical", max: 2 },
+          { nome: "Furioso 250 Melancia", max: 2 }
+        ]
+      },
+      {
+        nome: "Águas",
+        itens: [
+          { nome: "Água 500ml", max: 8 },
+          { nome: "Água 500ml com Gás", max: 5 },
+          { nome: "Água 1,5 Litros", max: 5 },
+          { nome: "Água 1,5 Litros com Gás", max: 2 },
+          { nome: "Água 5 Litros", max: 5 }
+        ]
+      },
+      {
+        nome: "600ml, 2 litros e Ouro Verde",
+        itens: [
+          { nome: "Caixa Original 600", max: 1 },
+          { nome: "Caixa Heineken 600", max: 1 },
+          { nome: "Furioso Tropical 2 Litros", max: 1 },
+          { nome: "Furioso Melancia 2 Litros", max: 1 },
+          { nome: "Redorse 2 Litros", max: 2 },
+          { nome: "Furioso 2 Litros", max: 3 },
+          { nome: "Ouro Verde Tubaína 2 Litros", max: 6 },
+          { nome: "Ouro Verde Guaraná 2 Litros", max: 4 },
+          { nome: "Ouro Verde Limão 2 Litros", max: 2 },
+          { nome: "Ouro Verde Laranja 2 Litros", max: 2 },
+          { nome: "Ouro Verde Uva 2 Litros", max: 2 },
+          { nome: "Ouro Verde Abacaxi 2 Litros", max: 3 }
+        ]
+      },
+      {
+        nome: "Maromba",
+        itens: [
+          { nome: "Maromba Preto e Rosa", max: 4 },
+          { nome: "Maromba Todo Preto", max: 2 },
+          { nome: "Maromba Maçã Verde", max: 2 },
+          { nome: "Maromba Vodka Azul com Rosa", max: 2 },
+          { nome: "Maromba Melancia Rosa com Vermelho", max: 2 },
+          { nome: "Maromba Job", max: 1 }
+        ]
+      },
+      {
+        nome: "Isotônicos, chás, sucos e infantil",
+        itens: [
+          { nome: "Gatorade Uva", max: 1 },
+          { nome: "Gatorade Laranja", max: 1 },
+          { nome: "Gatorade Morango com Melancia", max: 1 },
+          { nome: "Gatorade Limão", max: 1 },
+          { nome: "Chá Mate Leão 450ml", max: 1 },
+          { nome: "Tampico 450ml", max: 1 },
+          { nome: "Água de Coco 330ml", max: 1 },
+          { nome: "Kapo Uva 200ml", max: 1 },
+          { nome: "Kapo Laranja 200ml", max: 1 },
+          { nome: "Kapo Morango 200ml", max: 1 },
+          { nome: "Caixa Todinho", max: 1 }
+        ]
+      },
+      {
+        nome: "Refrigerantes mini, lata 350ml e 600ml",
+        itens: [
+          { nome: "Coca Mini Pet", max: 3 },
+          { nome: "Coca Mini Pet Zero", max: 2 },
+          { nome: "Fanta Laranja Mini Pet", max: 1 },
+          { nome: "Guaraná Antarctica Mini Pet", max: 1 },
+          { nome: "Guaraná Zero Mini Pet", max: 1 },
+          { nome: "Sprite Mini Pet", max: 1 },
+          { nome: "Pepsi Mini Pet", max: 1 },
+          { nome: "Coca 350", max: 6 },
+          { nome: "Coca 350 Zero", max: 4 },
+          { nome: "Sprite 350", max: 4 },
+          { nome: "Sprite 350 Zero", max: 4 },
+          { nome: "Fanta Laranja 350", max: 2 },
+          { nome: "Fanta Uva 350", max: 2 },
+          { nome: "Fanta Maracujá 350", max: 2 },
+          { nome: "Guaraná Antarctica 350", max: 1 },
+          { nome: "Guaraná Antarctica 350 Zero", max: 2 },
+          { nome: "Pepsi Twister 350", max: 1 },
+          { nome: "Pepsi 350", max: 1 },
+          { nome: "Água Tônica Antarctica 350", max: 1 },
+          { nome: "Água Tônica Antarctica Zero 350", max: 1 },
+          { nome: "Schweppes 350", max: 2 },
+          { nome: "H2O Limoneto", max: 2 },
+          { nome: "H2O Limão", max: 1 },
+          { nome: "Coca 1 Litro", max: 2 },
+          { nome: "Coca 1 Litro Zero", max: 2 },
+          { nome: "Coca 600", max: 2 },
+          { nome: "Coca 600 Zero", max: 2 }
+        ]
+      },
+      {
+        nome: "Refrigerantes 1,5L, 2L e Purity",
+        itens: [
+          { nome: "Coca 2 Litros", max: 20 },
+          { nome: "Coca 2 Litros Zero", max: 15 },
+          { nome: "Caixa Purity 1 Litro Maracujá", max: 1 },
+          { nome: "Caixa Purity 1 Litro Uva", max: 1 },
+          { nome: "Caixa Purity Goiaba 1 Litro", max: 1 },
+          { nome: "Fanta Laranja 2 Litros", max: 2 },
+          { nome: "Fanta Uva 2 Litros", max: 1 },
+          { nome: "Schweppes 1,5 Litros", max: 2 },
+          { nome: "H2O Limoneto 1,5 Litros", max: 1 },
+          { nome: "H2O Limão 1,5 Litros", max: 1 },
+          { nome: "Sukita Laranja", max: 1 },
+          { nome: "Pepsi Twister 2 Litros", max: 2 },
+          { nome: "Pepsi 2 Litros", max: 2 },
+          { nome: "Sprite 2 Litros", max: 3 },
+          { nome: "Sprite 2 Litros Zero", max: 3 },
+          { nome: "Guaraná Antarctica 2 Litros", max: 2 },
+          { nome: "Guaraná Antarctica 2 Litros Zero", max: 2 }
+        ]
+      },
+      {
+        nome: "Outros",
+        itens: [
+          { nome: "Leite Loko", max: 3 },
+          { nome: "Campari", max: 3 }
+        ]
+      }
+    ];
+
+    const STORAGE_KEY = "pedido_disk_cidade_alta_v1";
+    const state = carregarEstado();
+
+    const categoriesEl = document.getElementById("categories");
+    const searchInput = document.getElementById("searchInput");
+    const onlySelected = document.getElementById("onlySelected");
+    const txtPreview = document.getElementById("txtPreview");
+    const statusEl = document.getElementById("status");
+    const totalItemsEl = document.getElementById("totalItems");
+    const totalPedidoEl = document.getElementById("totalPedido");
+    const todayLabelEl = document.getElementById("todayLabel");
+
+    function getHoje() {
+      return new Date().toLocaleDateString("pt-BR");
+    }
+
+    function criarId(nome) {
+      return nome
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/(^-|-$)/g, "");
+    }
+
+    function todosItens() {
+      return categorias.flatMap(categoria =>
+        categoria.itens.map(item => ({ ...item, categoria: categoria.nome, id: criarId(item.nome) }))
+      );
+    }
+
+    function carregarEstado() {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+      } catch (error) {
+        return {};
+      }
+    }
+
+    function salvarEstado() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function setQuantidade(id, valor, max) {
+      const numero = Number.parseInt(valor, 10);
+      const seguro = Number.isNaN(numero) ? 0 : numero;
+      state[id] = Math.min(Math.max(seguro, 0), max);
+      salvarEstado();
+      atualizarTela();
+    }
+
+    function montarTxt() {
+      const copiarSelecionados = onlySelected.checked;
+      const linhas = [];
+
+      categorias.forEach(categoria => {
+        categoria.itens.forEach(item => {
+          const id = criarId(item.nome);
+          const qtd = state[id] || 0;
+
+          if (!copiarSelecionados || qtd > 0) {
+            linhas.push(`${qtd} - ${item.nome}`);
+          }
+        });
+      });
+
+      return `Disk Cidade alta - ${getHoje()}\n\nlista de itens\n\n${linhas.join("\n")}`;
+    }
+
+    function renderizar() {
+      const termo = searchInput.value.trim().toLowerCase();
+      categoriesEl.innerHTML = "";
+
+      categorias.forEach(categoria => {
+        const itensFiltrados = categoria.itens.filter(item =>
+          item.nome.toLowerCase().includes(termo)
+        );
+
+        if (itensFiltrados.length === 0) return;
+
+        const section = document.createElement("section");
+        section.className = "category";
+
+        const header = document.createElement("div");
+        header.className = "category-header";
+        header.innerHTML = `
+          <h2 class="category-title">${categoria.nome}</h2>
+          <div class="category-count">${itensFiltrados.length} itens</div>
+        `;
+
+        const items = document.createElement("div");
+        items.className = "items";
+
+        itensFiltrados.forEach(item => {
+          const id = criarId(item.nome);
+          const qtd = state[id] || 0;
+
+          const row = document.createElement("article");
+          row.className = "item";
+          row.innerHTML = `
+            <div>
+              <div class="item-name">${item.nome}</div>
+              <div class="max">Máximo: ${item.max}</div>
+            </div>
+            <div class="controls" aria-label="Controle de quantidade para ${item.nome}">
+              <button class="round minus" type="button" data-action="minus" data-id="${id}" data-max="${item.max}">−</button>
+              <input class="qty" type="number" min="0" max="${item.max}" value="${qtd}" data-id="${id}" data-max="${item.max}" aria-label="Quantidade de ${item.nome}" />
+              <button class="round plus" type="button" data-action="plus" data-id="${id}" data-max="${item.max}">+</button>
+            </div>
+          `;
+          items.appendChild(row);
+        });
+
+        section.appendChild(header);
+        section.appendChild(items);
+        categoriesEl.appendChild(section);
+      });
+    }
+
+    function atualizarTela() {
+      renderizar();
+      txtPreview.value = montarTxt();
+
+      const itens = todosItens();
+      const totalPedido = itens.reduce((total, item) => total + (state[item.id] || 0), 0);
+      totalItemsEl.textContent = itens.length;
+      totalPedidoEl.textContent = totalPedido;
+      todayLabelEl.textContent = getHoje();
+    }
+
+    function mostrarStatus(texto) {
+      statusEl.textContent = texto;
+      window.clearTimeout(mostrarStatus.timer);
+      mostrarStatus.timer = window.setTimeout(() => {
+        statusEl.textContent = "";
+      }, 2500);
+    }
+
+    async function copiarTxt() {
+      const texto = montarTxt();
+      txtPreview.value = texto;
+
+      try {
+        await navigator.clipboard.writeText(texto);
+        mostrarStatus("TXT copiado com sucesso!");
+      } catch (error) {
+        txtPreview.select();
+        document.execCommand("copy");
+        mostrarStatus("TXT selecionado/copiadо. Se necessário, use Ctrl+C.");
+      }
+    }
+
+    function baixarTxt() {
+      const texto = montarTxt();
+      const blob = new Blob([texto], { type: "text/plain;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `pedido-disk-cidade-alta-${getHoje().replaceAll("/", "-")}.txt`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      mostrarStatus("Arquivo TXT baixado!");
+    }
+
+    function zerarPedido() {
+      Object.keys(state).forEach(key => delete state[key]);
+      salvarEstado();
+      atualizarTela();
+      mostrarStatus("Pedido zerado.");
+    }
+
+    categoriesEl.addEventListener("click", event => {
+      const button = event.target.closest("button[data-action]");
+      if (!button) return;
+
+      const id = button.dataset.id;
+      const max = Number.parseInt(button.dataset.max, 10);
+      const atual = state[id] || 0;
+      const novoValor = button.dataset.action === "plus" ? atual + 1 : atual - 1;
+      setQuantidade(id, novoValor, max);
+    });
+
+    categoriesEl.addEventListener("change", event => {
+      const input = event.target.closest("input.qty");
+      if (!input) return;
+
+      const id = input.dataset.id;
+      const max = Number.parseInt(input.dataset.max, 10);
+      setQuantidade(id, input.value, max);
+    });
+
+    searchInput.addEventListener("input", atualizarTela);
+    onlySelected.addEventListener("change", atualizarTela);
+    document.getElementById("copyBtn").addEventListener("click", copiarTxt);
+    document.getElementById("downloadBtn").addEventListener("click", baixarTxt);
+    document.getElementById("clearBtn").addEventListener("click", zerarPedido);
+
+    atualizarTela();
+  </script>
+</body>
+</html>
